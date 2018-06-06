@@ -25,10 +25,12 @@ import android.hardware.SensorEventListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
 import android.support.wearable.view.DismissOverlayView;
+import android.support.wearable.view.WatchViewStub;
 import android.support.wearable.view.WearableListView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -54,6 +56,7 @@ import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -61,6 +64,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
+
+import javax.xml.datatype.Duration;
 
 import static com.partheniadisk.bliner.DataLayerListenerService.LOGD;
 
@@ -72,6 +77,8 @@ public class MainActivity extends WearableActivity implements
         DataApi.DataListener,
         MessageApi.MessageListener,
         CapabilityApi.CapabilityListener {
+
+    private WearableListView listView;
 
     private static final String TAG = "MainActivity";
     private GoogleApiClient mGoogleApiClient;
@@ -98,27 +105,60 @@ public class MainActivity extends WearableActivity implements
 
     //AWESOME real time UI updates!!
     private BroadcastReceiver _broadcastReceiver;
-    private static final String[] mElements =
-            {"time now","+5min, or a message","ETA: 09:12"};
-    private Adapter mAdapter;
+    private static String[] mElements =
+            {"time now","+5min or a message","ETA: 09:12"};
+    private MyAdapter mAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_main);
+
+        final WatchViewStub stub = findViewById(R.id.watch_view_stub);
+        stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
+            @Override
+            public void onLayoutInflated(final WatchViewStub stub) {
+                listView = findViewById(R.id.listView1);
+                mAdapter=new MyAdapter(MainActivity.this);
+                listView.setAdapter(mAdapter);
+                listView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+//                        Toast.makeText(getApplicationContext(),"Clicked list!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                listView.addOnScrollListener(new WearableListView.OnScrollListener() {
+                    @Override
+                    public void onScroll(int scroll) {
+
+                    }
+
+                    @Override
+                    public void onAbsoluteScrollChange(int scroll) {
+
+                    }
+
+                    @Override
+                    public void onScrollStateChanged(int scrollState) {
+
+                    }
+
+                    @Override
+                    public void onCentralPositionChanged(final int centralPosition) {
+
+                        if(centralPosition==1) stub.setBackground(getResources().getDrawable(R.drawable.commuterecognized));
+                        else if (centralPosition==0) stub.setBackground(getResources().getDrawable(R.drawable.autodimissable));
+                        else if (centralPosition==2) stub.setBackground(getResources().getDrawable(R.drawable.flickable));
+
+                    }
+                });
+            }
+        });
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 //        setAmbientEnabled(); // AMBIENT OFF FOR NOW AS IT MAY INTERFERE WITH CONNECTION
-//        setupViews();
 
-        WearableListView listView = (WearableListView) findViewById(R.id.wearable_list);
-        mAdapter = new Adapter(this, mElements);
-        listView.setAdapter(mAdapter);
-        listView.setClickListener(this);
-
-        if (savedInstanceState == null) {
-            listView.scrollToPosition(Integer.MAX_VALUE / 2);
-        }
-
+//
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(Wearable.API)
                 .addConnectionCallbacks(this)
@@ -126,7 +166,7 @@ public class MainActivity extends WearableActivity implements
                 .build();
 
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        mContainerView = (BoxInsetLayout) findViewById(R.id.container);
+
 //        textView = (TextView) findViewById(R.id.textView);
 //        mClockView = (TextView) findViewById(R.id.clock);
 //        mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
@@ -134,9 +174,9 @@ public class MainActivity extends WearableActivity implements
         // initialize touch listeners TODO: intitialize motion sensors to sense vehicle shits.
         initListeners();
 
-        mDismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
-        mDismissOverlay.setIntroText(R.string.intro_text);
-        mDismissOverlay.showIntroIfNecessary();
+//        mDismissOverlay = (DismissOverlayView) findViewById(R.id.dismiss_overlay);
+//        mDismissOverlay.setIntroText(R.string.intro_text);
+//        mDismissOverlay.showIntroIfNecessary();
 
 
     }
@@ -146,122 +186,108 @@ public class MainActivity extends WearableActivity implements
     private    long t= date.getTimeInMillis();
 
 
-    @Override
-    public void onClick(WearableListView.ViewHolder v) {
-        Integer tag = (Integer) v.itemView.getTag(); //h thesi tou
-
-        Toast toast = null;
-        if (tag.equals(0)) {
-            toast = Toast.makeText(this, "3X3 clicked", Toast.LENGTH_SHORT);
-        } else if (tag.equals(1)) {
-            toast = Toast.makeText(this, "4X4 clicked", Toast.LENGTH_SHORT);
-        } else if (tag.equals(2)) {
-            toast = Toast.makeText(this, "5X5 clicked", Toast.LENGTH_SHORT);
-        }
-        toast.show();
-    }
-
-    @Override
-    public void onTopEmptyRegionClick() {}
-
-    private static final class Adapter extends WearableListView.Adapter {
-        private String[] mDataset;
-        private final Context mContext;
-        private final LayoutInflater mInflater;
-
-        public Adapter(Context context, String[] dataset) {
-            mContext = context;
-            mInflater = LayoutInflater.from(context);
-            mDataset = dataset;
-        }
-
-        public static class ItemViewHolder extends WearableListView.ViewHolder {
-            private TextView textView;
-
-            public ItemViewHolder(View itemView) {
-                super(itemView);
-                textView = (TextView) itemView.findViewById(R.id.name);
-            }
-        }
-
-        @Override
-        public WearableListView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            return new ItemViewHolder(mInflater.inflate(R.layout.list_item, null));
-        }
-
-        @Override
-        public void onBindViewHolder(WearableListView.ViewHolder holder, int position) {
-            position = position % mElements.length;
-
-            ItemViewHolder itemHolder = (ItemViewHolder) holder;
-            TextView view = itemHolder.textView;
-            view.setText(mDataset[position]);
-            holder.itemView.setTag(position);
-        }
-
-        @Override
-        public int getItemCount() {
-            return Integer.MAX_VALUE;
-        }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        _broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context ctx, Intent intent) {
-                if (intent.getAction().compareTo(Intent.ACTION_TIME_TICK) == 0)
-                    mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
-                    //TODO:
-                etaText.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (10 * ONE_MINUTE_IN_MILLIS))));
-            }
-        };
-
-        registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (_broadcastReceiver != null)
-            unregisterReceiver(_broadcastReceiver);
-    }
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        _broadcastReceiver = new BroadcastReceiver() {
+//            @Override
+//            public void onReceive(Context ctx, Intent intent) {
+//
+//                if (intent.getAction().compareTo(Intent.ACTION_TIME_TICK) == 0)
+//                    mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
+//                    //TODO:
+//                etaText.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (10 * ONE_MINUTE_IN_MILLIS))));
+//            }
+//        };
+//
+//        registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+//    }
+//
+//    @Override
+//    public void onStop() {
+//        super.onStop();
+//        if (_broadcastReceiver != null)
+//            unregisterReceiver(_broadcastReceiver);
+//    }
 
 
     public void initListeners() {
 
 
-        mContainerView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                // Display the dismiss overlay with a button to exit this activity.
-                mDismissOverlay.show();
-                v.vibrate(longtap,-1);
-
-//                v.cancel();
-                return false;
-            }
-        });
-        mContainerView.setOnClickListener(new DoubleClickListener() {
-
-            @Override
-            public void onSingleClick(View view) {
-//                Toast.makeText(getApplicationContext(),"Single tap!", Toast.LENGTH_SHORT).show();
-                v.vibrate(onetap, -1);
-
-            }
-
-            @Override
-            public void onDoubleClick(View veiw) {
-//                Toast.makeText(getApplicationContext(),"Double tap!", Toast.LENGTH_SHORT).show();
-                v.vibrate(onetap, -1);
-
-
-            }
-        });
+//        mContainerView.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View view) {
+//                // Display the dismiss overlay with a button to exit this activity.
+//                mDismissOverlay.show();
+//                v.vibrate(longtap,-1);
+//
+////                v.cancel();
+//                return false;
+//            }
+//        });
+//        mContainerView.setOnClickListener(new DoubleClickListener() {
+//
+//            @Override
+//            public void onSingleClick(View view) {
+////                Toast.makeText(getApplicationContext(),"Single tap!", Toast.LENGTH_SHORT).show();
+//                v.vibrate(onetap, -1);
+//
+//            }
+//
+//            @Override
+//            public void onDoubleClick(View veiw) {
+////                Toast.makeText(getApplicationContext(),"Double tap!", Toast.LENGTH_SHORT).show();
+//                v.vibrate(onetap, -1);
+//
+//
+//            }
+//        });
     }
 
+    public static ArrayList<String> listItems;
+    static {
+        listItems = new ArrayList<String>();
+        listItems.add("");
+        listItems.add("");
+        listItems.add("");
+
+    }
+
+    @Override
+    public void onClick(WearableListView.ViewHolder viewHolder) {
+
+    }
+
+    @Override
+    public void onTopEmptyRegionClick() {
+
+    }
+
+    private class MyAdapter extends WearableListView.Adapter {
+
+        private final LayoutInflater inflater;
+
+        private MyAdapter(Context c) {
+            inflater = LayoutInflater.from(c);
+        }
+
+        @Override
+        public WearableListView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
+            return new WearableListView.ViewHolder(inflater.inflate(R.layout.row_simple_item_layout, null));
+        }
+
+        @Override
+        public void onBindViewHolder(WearableListView.ViewHolder viewHolder, int i) {
+            TextView view = viewHolder.itemView.findViewById(R.id.textView);
+            view.setText(listItems.get(i).toString());
+            viewHolder.itemView.setTag(i);
+        }
+
+        @Override
+        public int getItemCount() {
+            return listItems.size();
+        }
+    }
 
     @Override
     protected void onResume() {
