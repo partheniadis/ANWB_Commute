@@ -19,13 +19,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Message;
-import android.os.PowerManager;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
@@ -37,9 +36,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Adapter;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -55,17 +53,13 @@ import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Wearable;
 
+import org.w3c.dom.Text;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
-
-import javax.xml.datatype.Duration;
 
 import static com.partheniadisk.bliner.DataLayerListenerService.LOGD;
 
@@ -85,10 +79,7 @@ public class MainActivity extends WearableActivity implements
     private static final SimpleDateFormat AMBIENT_DATE_FORMAT =
             new SimpleDateFormat("HH:mm", Locale.US);
     private BoxInsetLayout mContainerView;
-    private TextView textView;
-    private TextView etaText;
-    private TextView mInstructionText;
-    private TextView mClockView;
+
     /**
      * Overlay that shows a short help text when first launched. It also provides an option to
      * exit the app.
@@ -102,24 +93,50 @@ public class MainActivity extends WearableActivity implements
     long[] onetap = { 0, 100};
     long[] twotap = { 0, 100, 300, 100};
     long[] longtap = { 0, 500};
-
     //AWESOME real time UI updates!!
     private BroadcastReceiver _broadcastReceiver;
-    private static String[] mElements =
-            {"time now","+5min or a message","ETA: 09:12"};
+    static final long ONE_MINUTE_IN_MILLIS=60000;//millisecs
+    Calendar date = Calendar.getInstance();
+    private long t= date.getTimeInMillis();
     private MyAdapter mAdapter;
+    private Typeface anwb_font;
+    private TextView view;
+    private TextView messageText;
+    private TextView etaTimeAdded;
+    private TextView detailsText;
+    private TextView mClockView;
+    private TextView etaText;
+    private int delay = 10;
+    private ImageView vehicleIconLow;
+    private ImageView vehicleIconHigh;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_main);
+        anwb_font = Typeface.createFromAsset(getAssets(),  "fonts/anwb.ttf");
+
+        mClockView = findViewById(R.id.clock);
+        etaTimeAdded = findViewById(R.id.etaTimeAdded);
+        mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
+        etaTimeAdded.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (delay * ONE_MINUTE_IN_MILLIS))));
+        messageText = findViewById(R.id.mainText);
+        etaText = findViewById(R.id.etaText);
+        vehicleIconLow = findViewById(R.id.vehicleIconLow);
+        mClockView.setTypeface(anwb_font);
+        messageText.setTypeface(anwb_font);
+        etaText.setTypeface(anwb_font);
+        etaTimeAdded.setTypeface(anwb_font);
+//        vehicleIconHigh = (ImageView) findViewById(R.id.vehicleIconHigh);
+
 
         final WatchViewStub stub = findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
             @Override
             public void onLayoutInflated(final WatchViewStub stub) {
                 listView = findViewById(R.id.listView1);
+                ///*TODO: Uncomment when ready*/ listView.setEnabled(false);
                 mAdapter=new MyAdapter(MainActivity.this);
                 listView.setAdapter(mAdapter);
                 listView.setOnClickListener(new View.OnClickListener() {
@@ -146,11 +163,20 @@ public class MainActivity extends WearableActivity implements
 
                     @Override
                     public void onCentralPositionChanged(final int centralPosition) {
+                        if(wearStage==0) { //Choose vehicles
 
-                        if(centralPosition==1) stub.setBackground(getResources().getDrawable(R.drawable.commuterecognized));
-                        else if (centralPosition==0) stub.setBackground(getResources().getDrawable(R.drawable.autodimissable));
-                        else if (centralPosition==2) stub.setBackground(getResources().getDrawable(R.drawable.flickable));
+                        }
+                        else if(wearStage==1){ //Commuting Driver mode recognized! (autodismissable)
+//                            if(centralPosition==1) stub.setBackground(getResources().getDrawable(R.drawable.commuterecognized));
+//                            else if (centralPosition==0) stub.setBackground(getResources().getDrawable(R.drawable.autodimissable));
+//                            else if (centralPosition==2) stub.setBackground(getResources().getDrawable(R.drawable.flickable));
+                        }
+                        else if(wearStage==2){
 
+                        }
+
+
+//
                     }
                 });
             }
@@ -167,10 +193,7 @@ public class MainActivity extends WearableActivity implements
 
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-//        textView = (TextView) findViewById(R.id.textView);
-//        mClockView = (TextView) findViewById(R.id.clock);
-//        mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
-//        etaText = (TextView) findViewById(R.id.etaText);
+//
         // initialize touch listeners TODO: intitialize motion sensors to sense vehicle shits.
         initListeners();
 
@@ -180,35 +203,29 @@ public class MainActivity extends WearableActivity implements
 
 
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+        _broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context ctx, Intent intent) {
 
-    static final long ONE_MINUTE_IN_MILLIS=60000;//millisecs
-    Calendar date = Calendar.getInstance();
-    private    long t= date.getTimeInMillis();
+                if (intent.getAction().compareTo(Intent.ACTION_TIME_TICK) == 0)
+                    mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
+                    //TODO:
+                etaTimeAdded.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (10 * ONE_MINUTE_IN_MILLIS))));
+            }
+        };
 
+        registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
+    }
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//        _broadcastReceiver = new BroadcastReceiver() {
-//            @Override
-//            public void onReceive(Context ctx, Intent intent) {
-//
-//                if (intent.getAction().compareTo(Intent.ACTION_TIME_TICK) == 0)
-//                    mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
-//                    //TODO:
-//                etaText.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (10 * ONE_MINUTE_IN_MILLIS))));
-//            }
-//        };
-//
-//        registerReceiver(_broadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
-//    }
-//
-//    @Override
-//    public void onStop() {
-//        super.onStop();
-//        if (_broadcastReceiver != null)
-//            unregisterReceiver(_broadcastReceiver);
-//    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (_broadcastReceiver != null)
+            unregisterReceiver(_broadcastReceiver);
+    }
 
 
     public void initListeners() {
@@ -247,9 +264,9 @@ public class MainActivity extends WearableActivity implements
     public static ArrayList<String> listItems;
     static {
         listItems = new ArrayList<String>();
-        listItems.add("");
-        listItems.add("");
-        listItems.add("");
+        listItems.add("No, close app.");
+        listItems.add("To Work\nby car?");
+        listItems.add("Yes, continue");
 
     }
 
@@ -263,22 +280,26 @@ public class MainActivity extends WearableActivity implements
 
     }
 
-    private class MyAdapter extends WearableListView.Adapter {
+    private class MyAdapter extends WearableListView.Adapter  {
 
         private final LayoutInflater inflater;
 
         private MyAdapter(Context c) {
             inflater = LayoutInflater.from(c);
+            listView.scrollToPosition(1);
         }
 
         @Override
         public WearableListView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             return new WearableListView.ViewHolder(inflater.inflate(R.layout.row_simple_item_layout, null));
+
+
         }
 
         @Override
         public void onBindViewHolder(WearableListView.ViewHolder viewHolder, int i) {
-            TextView view = viewHolder.itemView.findViewById(R.id.textView);
+            view = viewHolder.itemView.findViewById(R.id.textView);
+            view.setTypeface(anwb_font);
             view.setText(listItems.get(i).toString());
             viewHolder.itemView.setTag(i);
         }
@@ -287,6 +308,9 @@ public class MainActivity extends WearableActivity implements
         public int getItemCount() {
             return listItems.size();
         }
+
+
+
     }
 
     @Override
@@ -391,35 +415,43 @@ public class MainActivity extends WearableActivity implements
 
             if (wearStage == 0) {
                     v.vibrate(onetap, -1);
-                textView.setText("here are the available vehicles and destinations.");
+                    listItems.clear();
+                    listItems.add(0,"No, close app.");
+                    listItems.add(1,"To Work\nby car?");
+                    listItems.add(2,"Yes, continue");
+                    mAdapter.notifyDataSetChanged();
+                    listView.scrollToPosition(1);
         }
-            if (wearStage == 1) {
+            if (wearStage == 1) { //Yes, check delays ETA
                     v.vibrate(onetap, -1);
-                textView.setText("delays: 2 minutes, ETA: 9:30, 20 minutes to arrive to work in your car.");
+                listItems.clear();
+                listItems.add(0,"08:10");
+                listItems.add(1,"0 min");
+                listItems.add(2,"ETA\n" + "8:43");
+                mAdapter.notifyDataSetChanged();
+                listView.scrollToPosition(1);
+                view.setTextColor(getResources().getColor(R.color.yesGreen)); //TODO: remove if i add swap layout
+//                textView.setText("delays: 2 minutes, ETA: 9:30, 20 minutes to arrive to work in your car.");
             }
-            if (wearStage == 2){
-//                if(itsFirstTime) {
-                    v.vibrate(onetap, -1);
-                textView.setText("Vehicle parked!");
-//                    itsFirstTime=false;
-//                }
-
+            if (wearStage == 2){ //notification speedlight , ADD SWAP LAYOUT soon
+                v.vibrate(warningpattern, 3);
+                listItems.clear();
+                listItems.add("Speedlight\n");
+                mAdapter.notifyDataSetChanged();
+                listView.scrollToPosition(0);
+                //TODO: add timer to autodismiss the speedlimit
             }
             if (wearStage == 3){
-                //SPEEDTRAP
-                //TODO: do some other vibration?
-                //TODO: play some sound alert?
-                    v.vibrate(warningpattern, -1);
-                textView.setText("Speedtrap ahead! Reduce speed to 90.");
-                    //TODO: start autodismiss layout to DISMISS
+
+                v.vibrate(warningpattern, 3);
 
             }
             if (wearStage == 4){
                 //ALT ROUTE FOUND!
                 //TODO: do some other vibration?
                 //TODO: play some sound alert?
-                    v.vibrate(patternScanning, -1);
-                textView.setText("Alternative route found. Save 12minutes!");
+                    v.vibrate(patternScanning, 3);
+//                textView.setText("Alternative route found. Save 12minutes!");
                 //TODO: start autodismiss for NO on bottom. Show YES also on top.
             }
 

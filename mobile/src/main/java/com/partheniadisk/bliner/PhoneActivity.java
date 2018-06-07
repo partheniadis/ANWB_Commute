@@ -104,7 +104,7 @@ public class PhoneActivity extends Activity implements
     private ScheduledExecutorService mGeneratorExecutor;
     private ScheduledFuture<?> mDataItemGeneratorFuture;
     private int messageCounter = 0;
-    private int mobileStage = 1;
+    private int mobileStage = 0;
     private Button mNextStageBtn;
     private Button mPrevStageBtn;
     private TextView mInstructionText;
@@ -125,8 +125,8 @@ public class PhoneActivity extends Activity implements
         mNextStageBtn.setText(getResources().getString(R.string.next_stage)+": "+String.valueOf(mobileStage+1));
 //        mPrevStageBtn.setText(getResources().getString(R.string.next_stage)+": "+String.valueOf(mobileStage+1));
         mPrevStageBtn.setEnabled(false);
-        mSoundCurrentCheckpoint = (Button) findViewById(R.id.current);
-        mSoundLandmark = (Button) findViewById(R.id.landmarks);
+        mSoundCurrentCheckpoint = findViewById(R.id.current);
+        mSoundLandmark = findViewById(R.id.landmarks);
 
         speaker=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -288,14 +288,14 @@ public class PhoneActivity extends Activity implements
     private void setupViews() {
 //        mSendPhotoBtn = (Button) findViewById(R.id.sendPhoto);
 
-        mNextStageBtn = (Button) findViewById(R.id.nextStage);
-        mPrevStageBtn = (Button) findViewById(R.id.previousStage);
+        mNextStageBtn = findViewById(R.id.nextStage);
+        mPrevStageBtn = findViewById(R.id.previousStage);
         mStartActivityBtn = findViewById(R.id.start_wearable_activity);
-        mInstructionText = (TextView) findViewById(R.id.instructions_text);
+        mInstructionText = findViewById(R.id.instructions_text);
 
 //        mThumbView = (ImageView) findViewById(R.id.imageView);
 
-        mDataItemList = (ListView) findViewById(R.id.data_item_list);
+        mDataItemList = findViewById(R.id.data_item_list);
     }
 
     public void onNextStageClick(View view) {
@@ -493,8 +493,8 @@ public class PhoneActivity extends Activity implements
                         Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(android.R.layout.two_line_list_item, null);
                 convertView.setTag(holder);
-                holder.text1 = (TextView) convertView.findViewById(android.R.id.text1);
-                holder.text2 = (TextView) convertView.findViewById(android.R.id.text2);
+                holder.text1 = convertView.findViewById(android.R.id.text1);
+                holder.text2 = convertView.findViewById(android.R.id.text2);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
