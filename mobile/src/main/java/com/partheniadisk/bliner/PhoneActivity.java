@@ -105,15 +105,25 @@ public class PhoneActivity extends Activity implements
     private ScheduledFuture<?> mDataItemGeneratorFuture;
     private int messageCounter = 0;
     private int mobileStage = 0;
-    private Button mNextStageBtn;
-    private Button mPrevStageBtn;
-    private TextView mInstructionText;
     private TextToSpeech speaker;
     private boolean navStaretd = false;
     private Button mSoundCurrentCheckpoint;
     private Button mSoundLandmark;
     private int delay = 1100;
     private long tempTime = 0;
+    private Button stage0;
+    private Button stage1;
+    private Button stage2;
+    private Button stage3;
+    private Button stage4;
+    private Button stage5;
+    private Button stage6;
+    private Button stage7;
+    private Button stage8;
+    private Button stage9;
+    private Button stage10;
+    private Button stage11;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,11 +132,6 @@ public class PhoneActivity extends Activity implements
         mCameraSupported = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA);
         setContentView(R.layout.main_activity);
         setupViews();
-        mNextStageBtn.setText(getResources().getString(R.string.next_stage)+": "+String.valueOf(mobileStage+1));
-//        mPrevStageBtn.setText(getResources().getString(R.string.next_stage)+": "+String.valueOf(mobileStage+1));
-        mPrevStageBtn.setEnabled(false);
-        mSoundCurrentCheckpoint = findViewById(R.id.current);
-        mSoundLandmark = findViewById(R.id.landmarks);
 
         speaker=new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -222,8 +227,6 @@ public class PhoneActivity extends Activity implements
         LOGD(TAG, "Connection to Google API client was suspended");
         mStartActivityBtn.setEnabled(false);
 //        mSendPhotoBtn.setEnabled(false);
-        mNextStageBtn.setEnabled(false);
-        mPrevStageBtn.setEnabled(false);
     }
 
     @Override
@@ -243,8 +246,6 @@ public class PhoneActivity extends Activity implements
                 mResolvingError = false;
                 mStartActivityBtn.setEnabled(false);
 //                mSendPhotoBtn.setEnabled(false);
-                mNextStageBtn.setEnabled(false);
-                mPrevStageBtn.setEnabled(false);
                 Wearable.DataApi.removeListener(mGoogleApiClient, this);
                 Wearable.MessageApi.removeListener(mGoogleApiClient, this);
                 Wearable.CapabilityApi.removeListener(mGoogleApiClient, this);
@@ -288,50 +289,57 @@ public class PhoneActivity extends Activity implements
     private void setupViews() {
 //        mSendPhotoBtn = (Button) findViewById(R.id.sendPhoto);
 
-        mNextStageBtn = findViewById(R.id.nextStage);
-        mPrevStageBtn = findViewById(R.id.previousStage);
         mStartActivityBtn = findViewById(R.id.start_wearable_activity);
-        mInstructionText = findViewById(R.id.instructions_text);
-
-//        mThumbView = (ImageView) findViewById(R.id.imageView);
+        stage0 = findViewById(R.id.stage0);
+        stage1 = findViewById(R.id.stage1);
+        stage2 = findViewById(R.id.stage2);
+        stage3 = findViewById(R.id.stage3);
+        stage4 = findViewById(R.id.stage4);
+        stage5 = findViewById(R.id.stage5);
+        stage6 = findViewById(R.id.stage6);
+        stage7 = findViewById(R.id.stage7);
+        stage8 = findViewById(R.id.stage8);
+        stage9 = findViewById(R.id.stage9);
+        stage10 = findViewById(R.id.stage10);
+        stage11 = findViewById(R.id.stage11);
 
         mDataItemList = findViewById(R.id.data_item_list);
     }
 
-    public void onNextStageClick(View view) {
+    public void onSendStage(View view){
         if (mGoogleApiClient.isConnected()) {
-            if(mobileStage < 4){ //Means 1-6 (can go next)
-                if (mobileStage==3) {
-                    mNextStageBtn.setText("Restart Route");
-                    mPrevStageBtn.setEnabled(true);
-                }else{ //1,2,3,4,5 go next
-                    mNextStageBtn.setText(getResources().getString(R.string.next_stage)+": " + String.valueOf(mobileStage+2));
-                    mPrevStageBtn.setEnabled(true);
-                }
-                mobileStage++;
-
-            }else{ //be at 7
-                //restarting route
-                mPrevStageBtn.setEnabled(false);
-                mobileStage = 1;
-                mNextStageBtn.setText(getResources().getString(R.string.next_stage)+": " + String.valueOf(mobileStage+1));
+            switch(view.getId()){
+                case R.id.stage0:
+                    mobileStage=0;                break;
+                case R.id.stage1:
+                    mobileStage=1;                break;
+                case R.id.stage2:
+                    mobileStage=2;                break;
+                case R.id.stage3:
+                    mobileStage=3;                break;
+                case R.id.stage4:
+                    mobileStage=4;                break;
+                case R.id.stage5:
+                    mobileStage=5;                break;
+                case R.id.stage6:
+                    mobileStage=6;                break;
+                case R.id.stage7:
+                    mobileStage=7;                break;
+                case R.id.stage8:
+                    mobileStage=8;                break;
+                case R.id.stage9:
+                    mobileStage=9;                break;
+                case R.id.stage10:
+                    mobileStage=10;                break;
+                case R.id.stage11:
+                    mobileStage=11;                break;
             }
-            sendStage(mobileStage);
+
+
         }
+        sendStage(mobileStage);
     }
 
-    public void onPreviousStageClick(View view) {
-        if (mGoogleApiClient.isConnected()) {
-            if(mobileStage > 1){
-                if (mobileStage==2){
-                    mPrevStageBtn.setEnabled(false);
-                }
-                mobileStage--;
-                mNextStageBtn.setText(getResources().getString(R.string.next_stage)+": " + String.valueOf(mobileStage));
-            }
-            sendStage(mobileStage);
-        }
-    }
 
     /**
      * Sends an RPC to start a fullscreen Activity on the wearable.
@@ -339,7 +347,6 @@ public class PhoneActivity extends Activity implements
     public void onStartWearableActivityClick(View view) {
         LOGD(TAG, "Generating RPC");
         if(!navStaretd) {
-            mNextStageBtn.setEnabled(true);
             stageInformation();
             navStaretd=true;
         }
@@ -566,59 +573,21 @@ public class PhoneActivity extends Activity implements
     }
     private void stageInformation() {
         //give instruction: speech from mobile (& text on mobile)
+        if (mobileStage == 0) {
+        }
         if (mobileStage == 1) {
-            mInstructionText.setText("1. Keep heading at 12 o'clock and walk for 3 meters straight.");
-            mSoundCurrentCheckpoint.setText("Walk 3 meters straight.");
         }
         if (mobileStage == 2) {
-            mInstructionText.setText("2.You are at the lounge. Turn to right, 3 o'clock. Walk for 3 meters straight.");
-            mSoundCurrentCheckpoint.setText("Walk for 3 meters straight.");
-            //Raise hand
-//            TODO: if(isTurnable){}
-            //is firsttime ughh
 
-            //Say instruction to walk.
         }
 
         if (mobileStage == 3) {
-            mInstructionText.setText("3. Turn left, 10 o'clock. Walk for 15 meters in the hallway.");
-            mSoundLandmark.setText("You are passing the toilets on your left.");
-            mSoundCurrentCheckpoint.setText("Walk for 5 meters then turn right, 3 o'clock.");
         }
 
         if (mobileStage == 4) {
-            mInstructionText.setText("4. Halfway there! Turn to 3 o'clock. Walk for 20 meters straight the corridor.");
-            mSoundLandmark.setText("You passed the Canon shop on your left!");
-            mSoundCurrentCheckpoint.setText("Walk for 5 meters then turn left, 9 o'clock.");
-        }
-/*
-        //Notify "passed from Canon Shop!"
-        if (mobileStage == 5) {
-            mInstructionText.setText("5. Now stop & turn left, 9 o'clock. Walk for 15 meters to the vending machines");
-            mSoundLandmark.setText("Walk for 10 meters to the vending machines!");
-            mSoundCurrentCheckpoint.setText("In 5 meters, turn to the left of the vending machines.");
-
-        }
-        if (mobileStage == 6) {
-            mInstructionText.setText("6. Turn to 9 o'clock and walk past the right side of the big plant.");
-            mSoundCurrentCheckpoint.setText("Walk until you have the plant square on your left hand. Stay close to it, there are stairs ahead!");
-            mSoundLandmark.setText("You have the big plant on your left! Stay close to it!");
         }
 
-        if (mobileStage == 7) {
-            mInstructionText.setText("7. Turn to 9 o'clock and walk 3 meters to cafe Brand Stof.");
-            mSoundCurrentCheckpoint.setText("Walk 3 meters to reach cafe Brand Stof in front of you!");
-            mSoundLandmark.setText("You reached cafe Brand Sof!");
 
-        }*/
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-//                speaker.speak(mInstructionText.getText().toString(), TextToSpeech.QUEUE_FLUSH, null);
-                //Do something after 1300ms
-            }
-        }, 1300);
 
 
     }

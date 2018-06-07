@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/glanceView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+
+    <ImageView
+        android:id="@+id/circleNo"
+        android:layout_width="86dp"
+        android:layout_height="86dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="-45dp"
+        android:adjustViewBounds="false"
+        android:src="@drawable/circle"
+        android:cropToPadding="true" />
+
+    <ImageView
+        android:id="@+id/closeIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="5dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="false"
+        android:cropToPadding="true"
+        android:src="@drawable/close" />
+
+    <ImageView
+        android:id="@+id/circleYes"
+        android:layout_marginBottom="-45dp"
+        android:layout_width="86dp"
+        android:layout_height="86dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="false"
+        android:tint="@color/yesGreen"
+        android:cropToPadding="true"
+        android:src="@drawable/circle" />
+
+    <ImageView
+        android:id="@+id/checkIcon"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginBottom="5dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="false"
+        android:cropToPadding="true"
+        android:src="@drawable/check" />
+
+    <ImageView
+        android:id="@+id/vehicleIconLow"
+        android:layout_width="70dp"
+        android:layout_height="40dp"
+        android:layout_above="@+id/etaText"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/car" />
+
+    <TextView
+        android:id="@+id/descriptionText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/mainText"
+        android:layout_centerHorizontal="true"
+        android:text="Amstel, area of event"
+        android:textAlignment="center"
+        android:textColor="@color/colorSecondaryDark" />
+
+    <TextView
+        android:id="@+id/etaText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/etaTimeAdded"
+        android:layout_centerHorizontal="true"
+        android:text="ETA"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary" />
+
+    <TextView
+        android:id="@+id/etaTimeAdded"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="19dp"
+        android:text="01:00"
+        android:textAlignment="center"
+        android:textColor="@color/brightRed"
+        android:textSize="22dp" />
+
+    <TextView
+        android:id="@+id/urgentMesage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="19dp"
+        android:text="80 km/h"
+        android:textAlignment="center"
+        android:textColor="@color/brightRed"
+        android:textSize="22dp" />
+
+    <TextView
+        android:id="@+id/clock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:textColor="@color/colorPrimary"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="00:00"
+        android:textAlignment="center" />
+
+    <TextView
+        android:id="@+id/mainText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="76dp"
+        android:text="Message"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="24sp" />
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="95dp"
+        android:background="?android:attr/listDivider" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+        android:layout_width="175dp"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/descriptionText"
+        android:layout_centerHorizontal="true"
+        android:max="100"
+        android:progress="35" />
+
+</RelativeLayout>

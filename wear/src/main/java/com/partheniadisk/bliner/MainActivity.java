@@ -25,6 +25,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Vibrator;
 import android.support.wearable.activity.WearableActivity;
 import android.support.wearable.view.BoxInsetLayout;
@@ -37,6 +38,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -87,12 +89,20 @@ public class MainActivity extends WearableActivity implements
     private DismissOverlayView mDismissOverlay;
 
     private Vibrator v;
-    private int wearStage = 0;
+    private int wearStage = 1;
     long[] patternScanning = {0, 100, 50, 100, 700}; //tat-tat
     long[] warningpattern = {0, 500, 100, 200, 500}; //taaat-tat
     long[] onetap = { 0, 100};
     long[] twotap = { 0, 100, 300, 100};
     long[] longtap = { 0, 500};
+    public static ArrayList<String> listItems;
+    static {
+        listItems = new ArrayList<String>();
+        listItems.add(0,"N");
+        listItems.add(1,"");
+        listItems.add(2,"Y");
+
+    }
     //AWESOME real time UI updates!!
     private BroadcastReceiver _broadcastReceiver;
     static final long ONE_MINUTE_IN_MILLIS=60000;//millisecs
@@ -106,9 +116,23 @@ public class MainActivity extends WearableActivity implements
     private TextView detailsText;
     private TextView mClockView;
     private TextView etaText;
-    private int delay = 10;
+    private int delay = 30; //delays
+    private int trip = 25; //trip without delays
+    //function with total time to arrive
     private ImageView vehicleIconLow;
     private ImageView vehicleIconHigh;
+    private TextView descriptionText;
+    private ImageView circleNo;
+    private ImageView circleYes;
+    private ImageView checkIcon;
+    private ImageView closeIcon;
+    private ProgressBar progressBar;
+    private TextView urgentMessage;
+    private Date etaTimeExactly;
+    CountDownTimer mCountDownTimer;
+    private int counter=0;
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -120,16 +144,25 @@ public class MainActivity extends WearableActivity implements
         mClockView = findViewById(R.id.clock);
         etaTimeAdded = findViewById(R.id.etaTimeAdded);
         mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
-        etaTimeAdded.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (delay * ONE_MINUTE_IN_MILLIS))));
+        etaTimeExactly = new Date(t + (durationOfDrive() * ONE_MINUTE_IN_MILLIS));
+        etaTimeAdded.setText(AMBIENT_DATE_FORMAT.format(etaTimeExactly));
         messageText = findViewById(R.id.mainText);
         etaText = findViewById(R.id.etaText);
         vehicleIconLow = findViewById(R.id.vehicleIconLow);
+        descriptionText = findViewById(R.id.descriptionText);
         mClockView.setTypeface(anwb_font);
         messageText.setTypeface(anwb_font);
         etaText.setTypeface(anwb_font);
         etaTimeAdded.setTypeface(anwb_font);
 //        vehicleIconHigh = (ImageView) findViewById(R.id.vehicleIconHigh);
-
+        circleNo = findViewById(R.id.circleNo);
+        circleYes = findViewById(R.id.circleYes);
+        closeIcon = findViewById(R.id.closeIcon);
+        checkIcon = findViewById(R.id.checkIcon);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setProgress(counter);
+        progressBar.setMax(100);
+        urgentMessage = findViewById(R.id.urgentMesage);
 
         final WatchViewStub stub = findViewById(R.id.watch_view_stub);
         stub.setOnLayoutInflatedListener(new WatchViewStub.OnLayoutInflatedListener() {
@@ -139,6 +172,7 @@ public class MainActivity extends WearableActivity implements
                 ///*TODO: Uncomment when ready*/ listView.setEnabled(false);
                 mAdapter=new MyAdapter(MainActivity.this);
                 listView.setAdapter(mAdapter);
+                checkStage();
                 listView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -163,20 +197,30 @@ public class MainActivity extends WearableActivity implements
 
                     @Override
                     public void onCentralPositionChanged(final int centralPosition) {
-                        if(wearStage==0) { //Choose vehicles
+                        //DEFINE FLICK INTERACTIONS HERE PER STAGE
+                        if(wearStage==0) {
+                            //Choosing vehicles... do nothing
+                            //if(centralPosition==1) stub.setBackground(getResources().getDrawable(R.drawable.commuterecognized));
+                        }
+                        if(wearStage==1){ //Commuting Driver mode recognized! (autodismissable)
+                            if(centralPosition==0) {
+                                wearStage=2;
+                                //TODO: add auto    timer
+                                checkStage();
+                            }
+                            if(centralPosition==2) finish(); //android.os.Process.killProcess(android.os.Process.myPid()); FOR FORCE STOP
 
                         }
-                        else if(wearStage==1){ //Commuting Driver mode recognized! (autodismissable)
-//                            if(centralPosition==1) stub.setBackground(getResources().getDrawable(R.drawable.commuterecognized));
-//                            else if (centralPosition==0) stub.setBackground(getResources().getDrawable(R.drawable.autodimissable));
-//                            else if (centralPosition==2) stub.setBackground(getResources().getDrawable(R.drawable.flickable));
+                        if(wearStage==2){ //glancable
+                            checkStage();
+
+                        }if(wearStage==3){ //Commuting Driver mode recognized! (autodismissable)
+                            checkStage();
+                        }if(wearStage==4){ //Commuting Driver mode recognized! (autodismissable)
+                            checkStage();
+                        }if(wearStage==5){ //Commuting Driver mode recognized! (autodismissable)
+                            checkStage();
                         }
-                        else if(wearStage==2){
-
-                        }
-
-
-//
                     }
                 });
             }
@@ -203,6 +247,13 @@ public class MainActivity extends WearableActivity implements
 
 
     }
+
+    private int durationOfDrive() {
+        int duration = 0;
+        duration = trip + delay;
+        return duration;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -212,8 +263,9 @@ public class MainActivity extends WearableActivity implements
 
                 if (intent.getAction().compareTo(Intent.ACTION_TIME_TICK) == 0)
                     mClockView.setText(AMBIENT_DATE_FORMAT.format(new Date()));
-                    //TODO:
-                etaTimeAdded.setText(AMBIENT_DATE_FORMAT.format(new Date(t + (10 * ONE_MINUTE_IN_MILLIS))));
+
+                etaTimeExactly = new Date(t + (durationOfDrive() * ONE_MINUTE_IN_MILLIS));
+                etaTimeAdded.setText(AMBIENT_DATE_FORMAT.format(etaTimeExactly));
             }
         };
 
@@ -229,7 +281,6 @@ public class MainActivity extends WearableActivity implements
 
 
     public void initListeners() {
-
 
 //        mContainerView.setOnLongClickListener(new View.OnLongClickListener() {
 //            @Override
@@ -261,14 +312,7 @@ public class MainActivity extends WearableActivity implements
 //        });
     }
 
-    public static ArrayList<String> listItems;
-    static {
-        listItems = new ArrayList<String>();
-        listItems.add("No, close app.");
-        listItems.add("To Work\nby car?");
-        listItems.add("Yes, continue");
 
-    }
 
     @Override
     public void onClick(WearableListView.ViewHolder viewHolder) {
@@ -292,8 +336,6 @@ public class MainActivity extends WearableActivity implements
         @Override
         public WearableListView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
             return new WearableListView.ViewHolder(inflater.inflate(R.layout.row_simple_item_layout, null));
-
-
         }
 
         @Override
@@ -308,8 +350,6 @@ public class MainActivity extends WearableActivity implements
         public int getItemCount() {
             return listItems.size();
         }
-
-
 
     }
 
@@ -329,6 +369,7 @@ public class MainActivity extends WearableActivity implements
         }
 
         super.onPause();
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
 
@@ -410,43 +451,168 @@ public class MainActivity extends WearableActivity implements
         }
     }
 
+//
+    /*
+    * Screens watch:
+Watch 1: before commute, swipe between car and scooter
 
+Watch 2: commuting driver mode recognised car
+
+Watch 3: notification speedlight
+Watch 4: notification get alternative route
+Watch 5: no alternative route
+Watch 6: location saved screen car
+Watch 7: commuting driver mode recognised bike
+Watch 8: glance bike, no delay, ETA
+Watch 9: location saved screen bike
+Watch 10: show location car and current position
+Watch 11: show location bike and current position
+    * */
     private void checkStage() {
 
             if (wearStage == 0) {
-                    v.vibrate(onetap, -1);
-                    listItems.clear();
-                    listItems.add(0,"No, close app.");
-                    listItems.add(1,"To Work\nby car?");
-                    listItems.add(2,"Yes, continue");
-                    mAdapter.notifyDataSetChanged();
-                    listView.scrollToPosition(1);
-        }
-            if (wearStage == 1) { //Yes, check delays ETA
-                    v.vibrate(onetap, -1);
+                v.vibrate(onetap, -1);
+                //Choosing Vehicles.....
+            }
+            else if(wearStage ==1){
+                //Route recognized! Wrong?
+                v.vibrate(onetap, -1);
                 listItems.clear();
-                listItems.add(0,"08:10");
-                listItems.add(1,"0 min");
-                listItems.add(2,"ETA\n" + "8:43");
+                listItems.add(0," ");
+                listItems.add(1," ");
+                listItems.add(2," ");
                 mAdapter.notifyDataSetChanged();
                 listView.scrollToPosition(1);
-                view.setTextColor(getResources().getColor(R.color.yesGreen)); //TODO: remove if i add swap layout
-//                textView.setText("delays: 2 minutes, ETA: 9:30, 20 minutes to arrive to work in your car.");
+                //DO:
+                messageText.setText("To Work");
+                messageText.setTextColor(getResources().getColor(R.color.colorPrimary));
+                vehicleIconLow.setImageDrawable(getDrawable(R.drawable.car));
+                //UPDATE:
+                //updateElementsVisibility(int clock,
+                // int  message,
+                // int  description,
+                // int  urgent,
+                // int vehicleLow,
+                // int mEtaText,
+                // int mEtaTimeAdded,
+                // int noBubble,
+                // int yesBubble,
+                // int progressbar)
+                updateElementsVisibility(View.INVISIBLE,
+                        View.VISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.VISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.VISIBLE,
+                        View.INVISIBLE,
+                        View.VISIBLE);
+                mCountDownTimer=new CountDownTimer(5000,1000) {
+
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        Log.v("Log_tag", "Tick of Progress"+ counter+ millisUntilFinished);
+                        counter++;
+                        v.vibrate(100);
+                        progressBar.setProgress((5- counter)*100/(5000/1000));
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        //Do what you want
+                        wearStage=2;
+                        counter++;
+                        progressBar.setProgress(100);
+                        v.cancel();
+                        checkStage();
+                        counter=0;
+                    }
+                };
+                mCountDownTimer.start();
+                //what if i am going to work but with bicycle and the sensors got it wrong? Does it bother me again? All combinations? Work, Car? Work, Bike? Grandma, Car? Grandma, Bike? Only confirms when sensors got it correct also validated by Google API.
             }
-            if (wearStage == 2){ //notification speedlight , ADD SWAP LAYOUT soon
-                v.vibrate(warningpattern, 3);
+            else if (wearStage == 2) {
+                //Glancable
                 listItems.clear();
-                listItems.add("Speedlight\n");
+                listItems.add(0,"");
                 mAdapter.notifyDataSetChanged();
                 listView.scrollToPosition(0);
+                //DO:
+                messageText.setText("+" + String.valueOf(delay) +" min");
+                int color = getResources().getColor(R.color.yesGreen);
+                if(durationOfDrive()>40) {
+                    color = getResources().getColor(R.color.brightRed);
+                    v.vibrate(onetap, -1);
+                }
+                else  color = getResources().getColor(R.color.yesGreen);
+                messageText.setTextColor(color);
+                etaText.setTextColor(color);
+                etaTimeAdded.setTextColor(color);
+                //UPDATE:
+                //updateElementsVisibility(int clock,
+                // int  message,
+                // int  description,
+                // int  urgent,
+                // int vehicleLow,
+                // int mEtaText,
+                // int mEtaTimeAdded,
+                // int noBubble,
+                // int yesBubble,
+                // int progressbar)
+                updateElementsVisibility(View.VISIBLE,
+                        View.VISIBLE,
+                        View.VISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.VISIBLE,
+                        View.VISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE);
+            }
+            else if (wearStage == 3){
+                //notification speedlight , ADD SWAP LAYOUT soon
+                v.vibrate(warningpattern, 3);
+                listItems.clear();
+                listItems.add("");
+                mAdapter.notifyDataSetChanged();
+                listView.scrollToPosition(0);
+                //DO:
+                messageText.setText("Speedlight!");
+                descriptionText.setText("Amstel");
+                urgentMessage.setText("80 km/h");
+
+                //UPDATE:
+                //updateElementsVisibility(int clock,
+                // int  message,
+                // int  description,
+                // int urgent,
+                // int vehicleLow,
+                // int mEtaText,
+                // int mEtaTimeAdded,
+                // int noBubble,
+                // int yesBubble,
+                // int progressbar)
+                updateElementsVisibility(View.VISIBLE,
+                        View.VISIBLE,
+                        View.VISIBLE,
+                        View.VISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE,
+                        View.INVISIBLE);
+
                 //TODO: add timer to autodismiss the speedlimit
             }
-            if (wearStage == 3){
+            else if (wearStage == 4){
 
                 v.vibrate(warningpattern, 3);
 
             }
-            if (wearStage == 4){
+            else if (wearStage == 5){
                 //ALT ROUTE FOUND!
                 //TODO: do some other vibration?
                 //TODO: play some sound alert?
@@ -454,6 +620,23 @@ public class MainActivity extends WearableActivity implements
 //                textView.setText("Alternative route found. Save 12minutes!");
                 //TODO: start autodismiss for NO on bottom. Show YES also on top.
             }
+
+    }
+
+    private void updateElementsVisibility(int clock,int  message,int  description,int urgent, int vehicleLow, int mEtaText, int mEtaTimeAdded, int noBubble, int yesBubble, int progressbar) {
+
+        mClockView.setVisibility(clock);
+        messageText.setVisibility(message);
+        descriptionText.setVisibility(description);
+        urgentMessage.setVisibility(urgent);
+        vehicleIconLow.setVisibility(vehicleLow);
+        etaText.setVisibility(mEtaText);
+        etaTimeAdded.setVisibility(mEtaTimeAdded);
+        circleNo.setVisibility(noBubble);
+        closeIcon.setVisibility(noBubble);
+        circleYes.setVisibility(yesBubble);
+        checkIcon.setVisibility(yesBubble);
+        progressBar.setVisibility(progressbar);
 
     }
 

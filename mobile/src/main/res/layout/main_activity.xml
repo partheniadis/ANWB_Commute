@@ -13,118 +13,185 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+<LinearLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
-
-    <RelativeLayout
-        android:id="@+id/top"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true">
-
-
-        <Button
-            android:id="@+id/start_wearable_activity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onStartWearableActivityClick"
-            android:text="@string/start_wearable_activity"
-            android:enabled="false"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="0dp"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Skip current Decision Point (DP):"
-            android:gravity="center"
-            android:layout_below="@id/start_wearable_activity"
-            android:id="@+id/description"/>
-
-
-
-        <Button
-            android:layout_width="150dp"
-            android:layout_height="70dp"
-            android:text="@string/next_stage"
-            android:id="@+id/nextStage"
-            android:onClick="onNextStageClick"
-            android:visibility="visible"
-            android:enabled="false"
-            android:layout_below="@+id/description"
-            android:layout_alignParentEnd="true" />
-        <Button
-            android:layout_width="150dp"
-            android:layout_height="70dp"
-            android:text="@string/previous_stage"
-            android:id="@+id/previousStage"
-            android:enabled="false"
-            android:onClick="onPreviousStageClick"
-            android:visibility="visible"
-            android:layout_below="@+id/description"
-            android:layout_alignParentStart="true" />
-        <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Instructions"
-        android:gravity="center"
-        android:layout_below="@id/nextStage"
-        android:id="@+id/instructions_text"/>
-
-        <Button
-            android:layout_width="150dp"
-            android:layout_height="70dp"
-            android:text="@string/current"
-            android:id="@+id/current"
-            android:enabled="true"
-            android:onClick="soundCurrentCheckpoint"
-            android:visibility="visible"
-            android:layout_below="@+id/instructions_text"
-            android:layout_centerHorizontal="true" />
-
-        <Button
-            android:layout_width="150dp"
-            android:layout_height="70dp"
-            android:text="@string/landmark"
-            android:id="@+id/landmarks"
-            android:enabled="true"
-            android:onClick="soundALandmark"
-            android:visibility="visible"
-            android:layout_below="@+id/current"
-            android:layout_centerHorizontal="true" />
-
-
-    </RelativeLayout>
-
-    <View
-        style="@style/Divider"
-        android:id="@+id/divider"
-        android:layout_below="@+id/top"
-        android:layout_marginTop="5dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp" />
-
-   <!-- <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:background="@mipmap/ic_launcher"
-        android:layout_marginTop="125dp"
-        android:layout_below="@+id/divider"
-        android:layout_centerHorizontal="true">
-
-    </FrameLayout>-->
-
+    xmlns:android="http://schemas.android.com/apk/res/android" android:orientation="vertical">
     <ListView
         android:id="@+id/data_item_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/divider"
         android:visibility="gone"
         android:transcriptMode="alwaysScroll" />
-</RelativeLayout>
+    <Button
+    android:id="@+id/start_wearable_activity"
+    android:layout_width="300dp"
+    android:layout_height="50dp"
+    android:layout_gravity="center"
+        android:layout_margin="10dp"
+    android:enabled="false"
+    android:onClick="onStartWearableActivityClick"
+    android:text="@string/start_wearable_activity" />
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+
+            <Button
+                android:id="@+id/stage0"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="Stage 0: Choose Vehicle"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="Stage 1: Commute Recognized CAR"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="STAGE 2: GLANCABLE MODE"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="STAGE 3: SPEEDLIGHT WARNING"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="STAGE 4: ALTERNATIVE ROUTE"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="STAGE 5: LOCATION SAVED CAR"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage10"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorPrimary"
+                android:onClick="onSendStage"
+                android:text="STAGE 10: SHOW LOCATION CAR"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+
+            <Button
+                android:id="@+id/stage6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorAccent"
+                android:onClick="onSendStage"
+                android:text="STAGE 6: COMMUTE RECOGNIZED BIKE"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorAccent"
+                android:onClick="onSendStage"
+                android:text="STAGE 7: Glance bike, no delay, eta"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+
+            <Button
+                android:id="@+id/stage8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorAccent"
+                android:onClick="onSendStage"
+                android:text="STAGE 8: Location saved bike "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/stage9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorAccent"
+                android:onClick="onSendStage"
+                android:text="STAGE 9: Location saved bike "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+
+            <Button
+                android:id="@+id/stage11"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:background="@color/colorAccent"
+                android:onClick="onSendStage"
+                android:text="STAGE 10: SHOW LocATION BIKE"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+
+        </LinearLayout>
+</LinearLayout>
+</LinearLayout>
